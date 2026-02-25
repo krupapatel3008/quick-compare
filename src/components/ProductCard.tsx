@@ -1,16 +1,32 @@
-import { GroceryItem, platformLabels, platformTextColors } from "@/data/groceries";
+import { GroceryItem, Platform, platformLabels, platformTextColors } from "@/data/groceries";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Clock, TrendingDown } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface Props {
   item: GroceryItem;
 }
 
 const ProductCard = ({ item }: Props) => {
-  const lowestPrice = Math.min(...item.prices.filter(p => p.inStock).map(p => p.price));
-  const highestPrice = Math.max(...item.prices.filter(p => p.inStock).map(p => p.price));
+  const { addToCart } = useCart();
+  const { toast } = useToast();
+  const inStockPrices = item.prices.filter(p => p.inStock);
+  const lowestPrice = Math.min(...inStockPrices.map(p => p.price));
+  const highestPrice = Math.max(...inStockPrices.map(p => p.price));
   const savings = highestPrice - lowestPrice;
+
+  const cheapestPlatform = inStockPrices.find(p => p.price === lowestPrice);
+
+  const handleAddToCart = () => {
+    if (!cheapestPlatform) return;
+    addToCart(item, cheapestPlatform.platform, cheapestPlatform.price);
+    toast({
+      title: "Added to cart",
+      description: `${item.name} from ${platformLabels[cheapestPlatform.platform]} at ₹${cheapestPlatform.price}`,
+    });
+  };
 
   return (
     <div className="group rounded-xl border border-border bg-card p-5 shadow-card transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5">
@@ -66,7 +82,7 @@ const ProductCard = ({ item }: Props) => {
             Save up to ₹{savings}
           </span>
         )}
-        <Button size="sm" className="ml-auto gap-1.5">
+        <Button size="sm" className="ml-auto gap-1.5" onClick={handleAddToCart}>
           <ShoppingCart className="h-3.5 w-3.5" />
           Add to Cart
         </Button>
