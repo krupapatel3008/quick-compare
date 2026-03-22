@@ -1,56 +1,67 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
+import api from "@/api/axios";
 
 const OrderContext = createContext(undefined);
-const ORDERS_KEY = "qc_orders";
-
-const getStoredOrders = () => {
-  const data = localStorage.getItem(ORDERS_KEY);
-  return data ? JSON.parse(data) : [];
-};
 
 export const OrderProvider = ({ children }) => {
-  const [orders, setOrders] = useState(getStoredOrders);
+  const [orders, setOrders] = useState([]);
 
-  useEffect(() => localStorage.setItem(ORDERS_KEY, JSON.stringify(orders)), [orders]);
+  // ✅ FIXED: Now sends cart
+  const placeOrder = async (userId, userName, items, totalPrice) => {
+    try {
+      const res = await api.post("/orders/place", {
+        userId,
+        userName,
+        items,
+        totalPrice,
+      });
 
-  const placeOrder = (userId, userName, cartItems, totalPrice) => {
-    const order = {
-      id: `ORD-${Date.now()}`,
-      userId,
-      userName,
-      items: cartItems,
-      totalPrice,
-      status: "placed",
-      createdAt: new Date().toISOString(),
-      trackingSteps: [
-        { label: "Order Placed", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), done: true },
-        { label: "Packed", time: "", done: false },
-        { label: "Out for Delivery", time: "", done: false },
-        { label: "Delivered", time: "", done: false },
-      ],
-    };
-    setOrders((prev) => [order, ...prev]);
-    return order;
+      const newOrder = res.data;
+
+      setOrders((prev) => [newOrder, ...prev]);
+
+      return newOrder;
+    } catch (err) {
+      throw err.response?.data || { msg: "Failed to place order" };
+    }
   };
 
-  const updateOrderStatus = (orderId, stepIndex) => {
-    setOrders((prev) =>
-      prev.map((order) => {
-        if (order.id !== orderId) return order;
-        const newSteps = order.trackingSteps.map((step, i) => {
-          if (i <= stepIndex) return { ...step, done: true, time: step.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-          return { ...step, done: false, time: "" };
-        });
-        const statusMap = ["placed", "packed", "in_transit", "delivered"];
-        return { ...order, trackingSteps: newSteps, status: statusMap[stepIndex] || order.status };
-      })
-    );
-  };
 
-  const getUserOrders = (userId) => orders.filter((o) => o.userId === userId);
+  const fetchAllOrders = async (filters = {}) => {
+  try {
+    const query = new URLSearchParams(filters).toString();
+
+    const res = await api.get(`/orders/admin/all?${query}`);
+
+    setOrders(res.data);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+
+  const fetchUserOrders = async (userId) => {
+  try {
+    console.log("API CALL USER ID:", userId);
+
+    const res = await api.get(`/orders/${userId}`);
+    console.log("ORDERS:", res.data);
+
+    setOrders(res.data);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   return (
-    <OrderContext.Provider value={{ orders, placeOrder, updateOrderStatus, getUserOrders }}>
+    <OrderContext.Provider
+      value={{
+        orders,
+        placeOrder,
+        fetchUserOrders,
+        fetchAllOrders,
+      }}
+    >
       {children}
     </OrderContext.Provider>
   );

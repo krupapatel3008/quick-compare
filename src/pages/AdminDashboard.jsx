@@ -10,12 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { platformLabels, mockGroceries } from "@/data/groceries";
 import {
   Package, Users, ShoppingBag, LayoutDashboard,
   CheckCircle2, Clock, Truck, MapPin, Plus, Trash2, Edit
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 const statusColors = {
   placed: "bg-accent text-accent-foreground",
@@ -38,14 +38,25 @@ const AdminDashboard = () => {
   const [newCategory, setNewCategory] = useState("");
   const [users, setUsers] = useState([]);
   const { isAdmin, currentUser } = useAuth();
-  const { orders } = useOrders();
+  const { orders, fetchAllOrders } = useOrders();
   const { toast } = useToast();
   const [tab, setTab] = useState("orders");
   const [products, setProducts] = useState([]);
   const [newProduct, setNewProduct] = useState({ name: "", category: "", image: "", unit: "" });
+  const steps = ["placed", "packed", "in_transit", "delivered"];
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState("");
 
   if (!currentUser) return null;
   if (!isAdmin) return <Navigate to="/login" replace />;
+
+  useEffect(() => {
+    // FETCH ORDERS
+    fetchAllOrders({
+      status: statusFilter,
+      search,
+    });
+  }, []);
 
 
   useEffect(() => {
@@ -84,6 +95,35 @@ const AdminDashboard = () => {
     fetchCategories();
     fetchUsers();
   }, []);
+
+  const handleOrderSearch = async () => {
+    await fetchAllOrders({
+      status: statusFilter,
+      search,
+    });
+  }
+
+  // ORDER HANDLER
+  const handleUpdateOrder = async (orderId, status) => {
+    console.log("OrderID: ", orderId)
+    console.log("Status: ", status)
+    try {
+      await updateOrderStatusApi(orderId, status);
+
+      toast({
+        title: "Order Updated",
+        description: `Status changed to ${status}`,
+      });
+
+      fetchOrders(); // refresh UI
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err.msg,
+        variant: "destructive",
+      });
+    }
+  };
 
   // CATEGORY HANDLER
   const handleAddCategory = async () => {
@@ -172,6 +212,40 @@ const AdminDashboard = () => {
         {tab === "orders" && (
           <div className="space-y-4 animate-fade-in">
             <h2 className="font-display text-xl font-bold text-foreground">All Orders</h2>
+            <div className="flex gap-4 items-center">
+              {/* Order Search */}
+              <div className="flex-col">
+                <label htmlFor="ord-search">Search Order</label>
+                <input
+                  type="text"
+                  name="ord-search"
+                  id="ord-search"
+                  placeholder="Search by Order ID or User"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="border px-3 py-2 rounded w-full"
+                />
+              </div>
+
+              {/* Order Filter Dropdown */}
+              <div className="flex-col">
+                <label htmlFor="ord-filter">Filter Order</label>
+                <div>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="border px-3 py-2 rounded w-48"
+                  >
+                    <option value="all">All</option>
+                    <option value="placed">Placed</option>
+                    <option value="packed">Packed</option>
+                    <option value="in_transit">In Transit</option>
+                    <option value="delivered">Delivered</option>
+                  </select>
+                </div>
+              </div>
+              <Button className="" variant={"default"} onClick={handleOrderSearch}>Search</Button>
+            </div>
             {orders.length === 0 ? (
               <div className="rounded-xl border border-border bg-card p-12 text-center">
                 <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground/40" />
@@ -192,11 +266,6 @@ const AdminDashboard = () => {
                   </div>
 
                   <div className="mb-4 flex flex-wrap gap-2">
-                    {/* {order.items.map((item, idx) => (
-                      <span key={idx} className="rounded-lg bg-secondary px-3 py-1 text-sm text-secondary-foreground">
-                        {item.item.image} {item.item.name} ×{item.quantity}
-                      </span>
-                    ))} */}
                     {order.items.map((item, idx) => (
                       <span key={idx}>
                         {item.name} ×{item.quantity}
@@ -209,15 +278,12 @@ const AdminDashboard = () => {
                       const Icon = stepIcons[i];
                       return (
                         <Button
-                          key={i}
+                          key={step.label}
                           size="sm"
                           variant={step.done ? "default" : "outline"}
                           className="gap-1.5"
-                          // onClick={() => updateOrderStatus(order.orderId, i)}
-                          onClick={() => {
-                            const steps = ["placed", "packed", "in_transit", "delivered"];
-                            updateOrderStatusApi(order.orderId, steps[i]);
-                          }}
+                          disabled={!order.trackingSteps[i - 1]?.done && i !== 0}
+                          onClick={() => handleUpdateOrder(order.orderId, steps[i])}
                         >
                           <Icon className="h-3.5 w-3.5" />
                           {step.label}

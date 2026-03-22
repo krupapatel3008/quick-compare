@@ -1,5 +1,4 @@
 import { createContext, useContext, useState } from "react";
-import { platformLabels } from "@/data/groceries";
 
 const CartContext = createContext(undefined);
 
@@ -8,7 +7,10 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (item, platform, price) => {
     setCart((prev) => {
-      const existing = prev.find((c) => c.item.id === item.id && c.platform === platform);
+      const existing = prev.find(
+        (c) => c.item.id === item.id && c.platform === platform
+      );
+
       if (existing) {
         return prev.map((c) =>
           c.item.id === item.id && c.platform === platform
@@ -16,12 +18,17 @@ export const CartProvider = ({ children }) => {
             : c
         );
       }
+
       return [...prev, { item, platform, quantity: 1, price }];
     });
   };
 
   const removeFromCart = (itemId, platform) => {
-    setCart((prev) => prev.filter((c) => !(c.item.id === itemId && c.platform === platform)));
+    setCart((prev) =>
+      prev.filter(
+        (c) => !(c.item.id === itemId && c.platform === platform)
+      )
+    );
   };
 
   const updateQuantity = (itemId, platform, quantity) => {
@@ -29,9 +36,12 @@ export const CartProvider = ({ children }) => {
       removeFromCart(itemId, platform);
       return;
     }
+
     setCart((prev) =>
       prev.map((c) =>
-        c.item.id === itemId && c.platform === platform ? { ...c, quantity } : c
+        c.item.id === itemId && c.platform === platform
+          ? { ...c, quantity }
+          : c
       )
     );
   };
@@ -39,11 +49,35 @@ export const CartProvider = ({ children }) => {
   const clearCart = () => setCart([]);
 
   const totalItems = cart.reduce((sum, c) => sum + c.quantity, 0);
-  const totalPrice = cart.reduce((sum, c) => sum + c.price * c.quantity, 0);
+  const totalPrice = cart.reduce(
+    (sum, c) => sum + c.price * c.quantity,
+    0
+  );
+
+  // ✅ IMPORTANT: Format cart for backend
+  const getFormattedCart = () => {
+    return cart.map((c) => ({
+      productId: c.item.id,
+      name: c.item.name,
+      price: c.price,
+      quantity: c.quantity,
+      platform: c.platform,
+      image: c.item.image,
+    }));
+  };
 
   return (
     <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice }}
+      value={{
+        cart,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        totalItems,
+        totalPrice,
+        getFormattedCart,
+      }}
     >
       {children}
     </CartContext.Provider>
