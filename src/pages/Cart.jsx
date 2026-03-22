@@ -1,12 +1,31 @@
 import Navbar from "@/components/Navbar";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import { useOrders } from "@/context/OrderContext";
 import { Button } from "@/components/ui/button";
 import { platformLabels } from "@/data/groceries";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const Cart = () => {
   const { cart, updateQuantity, removeFromCart, clearCart, totalItems, totalPrice } = useCart();
+  const { currentUser, isLoggedIn } = useAuth();
+  const { placeOrder } = useOrders();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleCheckout = () => {
+    if (!isLoggedIn) {
+      toast({ title: "Please login first", description: "You need to be logged in to place an order", variant: "destructive" });
+      navigate("/login");
+      return;
+    }
+    placeOrder(currentUser.id, currentUser.name, cart, totalPrice);
+    clearCart();
+    toast({ title: "Order Placed! 🎉", description: "Your order has been placed successfully" });
+    navigate("/my-orders");
+  };
 
   if (cart.length === 0) {
     return (
@@ -17,9 +36,7 @@ const Cart = () => {
           <h2 className="mt-4 font-display text-2xl font-bold text-foreground">Your cart is empty</h2>
           <p className="mt-2 text-muted-foreground">Start comparing prices and add items to your cart</p>
           <Link to="/compare">
-            <Button className="mt-6 gap-2">
-              Browse Products <ArrowRight className="h-4 w-4" />
-            </Button>
+            <Button className="mt-6 gap-2">Browse Products <ArrowRight className="h-4 w-4" /></Button>
           </Link>
         </div>
       </div>
@@ -43,11 +60,7 @@ const Cart = () => {
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-3 lg:col-span-2">
             {cart.map((c, i) => (
-              <div
-                key={`${c.item.id}-${c.platform}`}
-                className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-card animate-fade-in"
-                style={{ animationDelay: `${i * 60}ms` }}
-              >
+              <div key={`${c.item.id}-${c.platform}`} className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-card animate-fade-in" style={{ animationDelay: `${i * 60}ms` }}>
                 <span className="text-3xl">{c.item.image}</span>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-display font-semibold text-card-foreground truncate">{c.item.name}</h3>
@@ -64,9 +77,7 @@ const Cart = () => {
                 </div>
                 <div className="text-right">
                   <p className="font-display font-bold text-foreground">₹{c.price * c.quantity}</p>
-                  {c.quantity > 1 && (
-                    <p className="text-xs text-muted-foreground">₹{c.price} each</p>
-                  )}
+                  {c.quantity > 1 && <p className="text-xs text-muted-foreground">₹{c.price} each</p>}
                 </div>
                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => removeFromCart(c.item.id, c.platform)}>
                   <Trash2 className="h-4 w-4" />
@@ -91,13 +102,11 @@ const Cart = () => {
                 <span>₹{totalPrice}</span>
               </div>
             </div>
-            <Button className="mt-6 w-full gap-2" size="lg">
-              Proceed to Checkout <ArrowRight className="h-4 w-4" />
+            <Button className="mt-6 w-full gap-2" size="lg" onClick={handleCheckout}>
+              Place Order <ArrowRight className="h-4 w-4" />
             </Button>
             <Link to="/compare">
-              <Button variant="ghost" className="mt-2 w-full text-muted-foreground">
-                Continue Shopping
-              </Button>
+              <Button variant="ghost" className="mt-2 w-full text-muted-foreground">Continue Shopping</Button>
             </Link>
           </div>
         </div>

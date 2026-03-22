@@ -1,19 +1,24 @@
 import { Link, useLocation } from "react-router-dom";
-import { ShoppingCart, BarChart3, Truck, User, LogIn, Menu, X } from "lucide-react";
+import { ShoppingCart, BarChart3, Truck, User, LogIn, Menu, X, LayoutDashboard, LogOut, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 
 const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { totalItems } = useCart();
+  const { currentUser, isLoggedIn, isAdmin, logout } = useAuth();
 
   const navItems = [
     { to: "/", label: "Home", icon: BarChart3 },
     { to: "/compare", label: "Compare", icon: ShoppingCart },
     { to: "/tracking", label: "Track Order", icon: Truck },
   ];
+
+  if (isLoggedIn) navItems.push({ to: "/my-orders", label: "My Orders", icon: Package });
+  if (isAdmin) navItems.push({ to: "/admin", label: "Admin", icon: LayoutDashboard });
 
   const isActive = (path) => location.pathname === path;
 
@@ -52,16 +57,27 @@ const Navbar = () => {
               )}
             </Button>
           </Link>
-          <Link to="/login">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <LogIn className="h-4 w-4" /> Login
-            </Button>
-          </Link>
-          <Link to="/register">
-            <Button size="sm" className="gap-2">
-              <User className="h-4 w-4" /> Sign Up
-            </Button>
-          </Link>
+          {isLoggedIn ? (
+            <>
+              <span className="text-sm text-muted-foreground">{currentUser.name}</span>
+              <Button variant="ghost" size="sm" className="gap-2" onClick={logout}>
+                <LogOut className="h-4 w-4" /> Logout
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <LogIn className="h-4 w-4" /> Login
+                </Button>
+              </Link>
+              <Link to="/register">
+                <Button size="sm" className="gap-2">
+                  <User className="h-4 w-4" /> Sign Up
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
@@ -90,16 +106,27 @@ const Navbar = () => {
               </Link>
             ))}
             <div className="my-2 border-t border-border" />
-            <Link to="/login" onClick={() => setMobileOpen(false)}>
-              <Button variant="ghost" className="w-full justify-start gap-2">
-                <LogIn className="h-4 w-4" /> Login
-              </Button>
-            </Link>
-            <Link to="/register" onClick={() => setMobileOpen(false)}>
-              <Button className="w-full justify-start gap-2">
-                <User className="h-4 w-4" /> Sign Up
-              </Button>
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <p className="px-3 text-sm text-muted-foreground">Signed in as {currentUser.name}</p>
+                <Button variant="ghost" className="w-full justify-start gap-2" onClick={() => { logout(); setMobileOpen(false); }}>
+                  <LogOut className="h-4 w-4" /> Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" onClick={() => setMobileOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start gap-2">
+                    <LogIn className="h-4 w-4" /> Login
+                  </Button>
+                </Link>
+                <Link to="/register" onClick={() => setMobileOpen(false)}>
+                  <Button className="w-full justify-start gap-2">
+                    <User className="h-4 w-4" /> Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

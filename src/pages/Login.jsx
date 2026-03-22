@@ -1,36 +1,28 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { toast } = useToast();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { login, isAdmin } = useAuth();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // manual credential check
-    if (email === "admin@gmail.com" && password === "1234") {
-      toast({
-        title: "Login Successful",
-        description: "Welcome back!",
-      });
-
-      navigate("/"); // redirect to home page
+    const result = login(email, password);
+    if (result.success) {
+      toast({ title: "Login Successful", description: `Welcome back, ${result.user.name}!` });
+      navigate(result.user.role === "admin" ? "/admin" : "/");
     } else {
-      toast({
-        title: "Login Failed",
-        description: "Invalid email or password",
-        variant: "destructive",
-      });
+      toast({ title: "Login Failed", description: result.message, variant: "destructive" });
     }
   };
 
@@ -67,14 +59,14 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-end">
-              <button type="button" className="text-sm text-primary hover:underline">Forgot password?</button>
-            </div>
-
             <Button type="submit" className="w-full gap-2">
               Sign In <ArrowRight className="h-4 w-4" />
             </Button>
           </form>
+
+          <div className="mt-4 rounded-lg bg-secondary p-3 text-center text-xs text-muted-foreground">
+            Admin: <span className="font-mono text-foreground">admin@quickcompare.com</span> / <span className="font-mono text-foreground">admin123</span>
+          </div>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
