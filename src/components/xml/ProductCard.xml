@@ -1,0 +1,27 @@
+<ProductCard>
+  <Header>
+    <LeftSection>
+      <Image>{item.image}</Image>
+      <Details>
+        <Name>{item.name}</Name>
+        <Unit>{item.unit}</Unit>
+      </Details>
+    </LeftSection>
+    <CategoryBadge>{item.category}</CategoryBadge>
+  </Header>
+
+  <PriceList>
+    <PriceItem>
+      <PlatformName>{platformLabels[platform]}</PlatformName>
+      <DeliveryTime>{deliveryTime}</DeliveryTime>
+      <Price>₹{price}</Price>
+      <Status>{inStock ? "Available" : "Out of stock"}</Status>
+      <IsCheapest>{true/false}</IsCheapest>
+    </PriceItem>
+  </PriceList>
+
+  <Footer>
+    <Savings>Save up to ₹{savings}</Savings>
+    <AddToCartButton>Add to Cart</AddToCartButton>
+  </Footer>
+</ProductCard>

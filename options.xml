@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<options>
+  <option id="1" value="apple" default="true">Apple</option>
+  <option id="2" value="banana">Banana</option>
+  <option id="3" value="orange">Orange</option>
+  <option id="4" value="grape">Grape</option>
+</options>
