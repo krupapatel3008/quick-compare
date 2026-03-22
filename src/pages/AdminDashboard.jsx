@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { getUsers, updateOrderStatusApi } from "@/api/adminApi";
+import { getCategories, addCategory } from "@/api/categoryApi";
+import { getGroceries, addGrocery } from "@/api/groceryApi";
+import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
@@ -31,45 +34,93 @@ const statusLabels = {
 const stepIcons = [Package, CheckCircle2, Truck, MapPin];
 
 const AdminDashboard = () => {
-  const { isAdmin, users, currentUser } = useAuth();
-  const { orders, updateOrderStatus } = useOrders();
+  const [categories, setCategories] = useState([]);
+  const [newCategory, setNewCategory] = useState("");
+  const [users, setUsers] = useState([]);
+  const { isAdmin, currentUser } = useAuth();
+  const { orders } = useOrders();
   const { toast } = useToast();
   const [tab, setTab] = useState("orders");
-  const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem("qc_admin_products");
-    return saved ? JSON.parse(saved) : mockGroceries;
-  });
-  const [newProduct, setNewProduct] = useState({ name: "", category: "", image: "🛒", unit: "" });
+  const [products, setProducts] = useState([]);
+  const [newProduct, setNewProduct] = useState({ name: "", category: "", image: "", unit: "" });
 
+  if (!currentUser) return null;
   if (!isAdmin) return <Navigate to="/login" replace />;
 
-  const saveProducts = (p) => {
-    setProducts(p);
-    localStorage.setItem("qc_admin_products", JSON.stringify(p));
+
+  useEffect(() => {
+    // FETCH USERS
+    const fetchUsers = async () => {
+      try {
+        const data = await getUsers();
+        setUsers(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    // FETCH PRODUCTS
+    const fetchProducts = async () => {
+      try {
+        const data = await getGroceries();
+        setProducts(data);
+      } catch (err) {
+        console.log(err);
+      }
+
+    };
+
+    // FETCH CATEGORY
+    const fetchCategories = async () => {
+      try {
+        const data = await getCategories();
+        setCategories(data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchProducts();
+    fetchCategories();
+    fetchUsers();
+  }, []);
+
+  // CATEGORY HANDLER
+  const handleAddCategory = async () => {
+    if (!newCategory) return;
+
+    const cat = await addCategory(newCategory);
+    setCategories((prev) => [...prev, cat]);
+    setNewCategory("");
   };
 
-  const addProduct = () => {
+
+  // ADD PRODUCT (backend)
+  const addProduct = async () => {
     if (!newProduct.name || !newProduct.category || !newProduct.unit) {
       toast({ title: "Fill all fields", variant: "destructive" });
       return;
     }
-    const product = {
-      id: `prod-${Date.now()}`,
-      ...newProduct,
-      prices: [
-        { platform: "zepto", price: 0, deliveryTime: "10 min", inStock: true },
-        { platform: "instamart", price: 0, deliveryTime: "15 min", inStock: true },
-        { platform: "blinkit", price: 0, deliveryTime: "12 min", inStock: true },
-        { platform: "bigbasket", price: 0, deliveryTime: "30 min", inStock: true },
-      ],
-    };
-    saveProducts([...products, product]);
-    setNewProduct({ name: "", category: "", image: "🛒", unit: "" });
-    toast({ title: "Product added!" });
+
+    try {
+      const product = await addGrocery(newProduct);
+      setProducts((prev) => [...prev, product]);
+
+      setNewProduct({
+        name: "",
+        category: "",
+        image: "🛒",
+        unit: ""
+      });
+
+      toast({ title: "Product added!" });
+    } catch (err) {
+      toast({ title: "Error adding product", variant: "destructive" });
+    }
   };
 
   const removeProduct = (id) => {
-    saveProducts(products.filter((p) => p.id !== id));
+    setProducts(products.filter((p) => p._id !== id));
     toast({ title: "Product removed" });
   };
 
@@ -102,8 +153,8 @@ const AdminDashboard = () => {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-4 rounded-xl border p-5 text-left transition-all ${tab === t.id
-                  ? "border-primary bg-primary/5 shadow-card"
-                  : "border-border bg-card hover:shadow-card"
+                ? "border-primary bg-primary/5 shadow-card"
+                : "border-border bg-card hover:shadow-card"
                 }`}
             >
               <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${tab === t.id ? "bg-brand-gradient" : "bg-secondary"}`}>
@@ -128,10 +179,10 @@ const AdminDashboard = () => {
               </div>
             ) : (
               orders.map((order) => (
-                <div key={order.id} className="rounded-xl border border-border bg-card p-6 shadow-card">
+                <div key={order._id} className="rounded-xl border border-border bg-card p-6 shadow-card">
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <p className="font-display font-semibold text-foreground">{order.id}</p>
+                      <p className="font-display font-semibold text-foreground">{order.orderId}</p>
                       <p className="text-sm text-muted-foreground">by {order.userName} · {new Date(order.createdAt).toLocaleDateString()}</p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -141,9 +192,14 @@ const AdminDashboard = () => {
                   </div>
 
                   <div className="mb-4 flex flex-wrap gap-2">
-                    {order.items.map((item, idx) => (
+                    {/* {order.items.map((item, idx) => (
                       <span key={idx} className="rounded-lg bg-secondary px-3 py-1 text-sm text-secondary-foreground">
                         {item.item.image} {item.item.name} ×{item.quantity}
+                      </span>
+                    ))} */}
+                    {order.items.map((item, idx) => (
+                      <span key={idx}>
+                        {item.name} ×{item.quantity}
                       </span>
                     ))}
                   </div>
@@ -157,7 +213,11 @@ const AdminDashboard = () => {
                           size="sm"
                           variant={step.done ? "default" : "outline"}
                           className="gap-1.5"
-                          onClick={() => updateOrderStatus(order.id, i)}
+                          // onClick={() => updateOrderStatus(order.orderId, i)}
+                          onClick={() => {
+                            const steps = ["placed", "packed", "in_transit", "delivered"];
+                            updateOrderStatusApi(order.orderId, steps[i]);
+                          }}
                         >
                           <Icon className="h-3.5 w-3.5" />
                           {step.label}
@@ -171,13 +231,26 @@ const AdminDashboard = () => {
           </div>
         )}
 
+
+
         {/* Products Tab */}
         {tab === "products" && (
           <div className="space-y-6 animate-fade-in">
             <h2 className="font-display text-xl font-bold text-foreground">Manage Products</h2>
 
             <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-              <h3 className="mb-4 font-display font-semibold text-foreground">Add New Product</h3>
+              <h3 className="mb-2 font-display font-semibold text-foreground">Add New Category</h3>
+              {/* Category Add */}
+              <div className="flex gap-2 mb-10 w-full">
+                <Input
+                  placeholder="New category"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  className="w-[1/2]"
+                />
+                <Button onClick={handleAddCategory}>Add</Button>
+              </div>
+              <h3 className="mb-2 font-display font-semibold text-foreground">Add New Product</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="space-y-1">
                   <Label>Name</Label>
@@ -185,7 +258,21 @@ const AdminDashboard = () => {
                 </div>
                 <div className="space-y-1">
                   <Label>Category</Label>
-                  <Input placeholder="e.g. Dairy" value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })} />
+                  {/* <Input placeholder="e.g. Dairy" value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })} /> */}
+                  <select
+                    className="w-full border rounded px-3 py-2"
+                    value={newProduct.category}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, category: e.target.value })
+                    }
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-1">
                   <Label>Unit</Label>
@@ -196,6 +283,7 @@ const AdminDashboard = () => {
                   <Input placeholder="🛒" value={newProduct.image} onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })} />
                 </div>
               </div>
+
               <Button className="mt-4 gap-2" onClick={addProduct}><Plus className="h-4 w-4" /> Add Product</Button>
             </div>
 
@@ -221,7 +309,7 @@ const AdminDashboard = () => {
           <div className="space-y-4 animate-fade-in">
             <h2 className="font-display text-xl font-bold text-foreground">All Users</h2>
             {users.map((user) => (
-              <div key={user.id} className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-card">
+              <div key={user._id} className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-card">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary font-display font-bold text-secondary-foreground">
                   {user.name.charAt(0).toUpperCase()}
                 </div>

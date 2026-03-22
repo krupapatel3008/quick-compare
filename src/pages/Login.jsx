@@ -15,16 +15,26 @@ const Login = () => {
   const navigate = useNavigate();
   const { login, isAdmin } = useAuth();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const result = login(email, password);
-    if (result.success) {
-      toast({ title: "Login Successful", description: `Welcome back, ${result.user.name}!` });
-      navigate(result.user.role === "admin" ? "/admin" : "/");
-    } else {
-      toast({ title: "Login Failed", description: result.message, variant: "destructive" });
-    }
-  };
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const result = await login(email, password); // ✅ await added
+
+  if (result.success) {
+    toast({
+      title: "Login Successful",
+      description: `Welcome back, ${result.user.name}!`,
+    });
+
+    navigate(result.user.role === "admin" ? "/admin" : "/");
+  } else {
+    toast({
+      title: "Login Failed",
+      description: result.message,
+      variant: "destructive",
+    });
+  }
+};
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">

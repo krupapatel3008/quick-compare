@@ -1,73 +1,84 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { loginUser, registerUser } from "@/api/authApi";
 
 const AuthContext = createContext(null);
 
-const USERS_KEY = "qc_users";
-const CURRENT_USER_KEY = "qc_current_user";
-
-const getStoredUsers = () => {
-  const data = localStorage.getItem(USERS_KEY);
-  if (!data) {
-    // Seed with admin user
-    const admin = {
-      id: "admin-001",
-      name: "Admin",
-      email: "admin@quickcompare.com",
-      password: "admin123",
-      role: "admin",
-      createdAt: new Date().toISOString(),
-    };
-    localStorage.setItem(USERS_KEY, JSON.stringify([admin]));
-    return [admin];
-  }
-  return JSON.parse(data);
-};
-
-const saveUsers = (users) => localStorage.setItem(USERS_KEY, JSON.stringify(users));
+const TOKEN_KEY = "qc_token";
+const USER_KEY = "qc_user";
 
 export const AuthProvider = ({ children }) => {
-  const [users, setUsers] = useState(getStoredUsers);
   const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem(CURRENT_USER_KEY);
+    const saved = localStorage.getItem(USER_KEY);
     return saved ? JSON.parse(saved) : null;
   });
 
-  useEffect(() => saveUsers(users), [users]);
+  const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY));
+
   useEffect(() => {
-    if (currentUser) localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
-    else localStorage.removeItem(CURRENT_USER_KEY);
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    else localStorage.removeItem(TOKEN_KEY);
+  }, [token]);
+
+  useEffect(() => {
+    if (currentUser)
+      localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
+    else localStorage.removeItem(USER_KEY);
   }, [currentUser]);
 
-  const login = (email, password) => {
-    const user = users.find((u) => u.email === email && u.password === password);
-    if (!user) return { success: false, message: "Invalid email or password" };
-    setCurrentUser(user);
-    return { success: true, user };
+  // 🔐 LOGIN
+  const login = async (email, password) => {
+    try {
+      const data = await loginUser(email, password);
+
+      if (!data.token) {
+        return { success: false, message: data.msg || "Login failed" };
+      }
+
+      setToken(data.token);
+      setCurrentUser(data.user);
+
+      return { success: true, user: data.user };
+    } catch (err) {
+      return { success: false, message: "Server error" };
+    }
   };
 
-  const register = (name, email, password) => {
-    if (users.find((u) => u.email === email))
-      return { success: false, message: "Email already registered" };
-    const newUser = {
-      id: `user-${Date.now()}`,
-      name,
-      email,
-      password,
-      role: "user",
-      createdAt: new Date().toISOString(),
-    };
-    setUsers((prev) => [...prev, newUser]);
-    setCurrentUser(newUser);
-    return { success: true, user: newUser };
+  // 🔐 REGISTER
+  const register = async (name, email, password) => {
+    try {
+      const data = await registerUser(name, email, password);
+
+      if (data.error || data.msg === "User already exists") {
+        return { success: false, message: data.msg };
+      }
+
+      // Auto login after register
+      return await login(email, password);
+    } catch (err) {
+      return { success: false, message: "Server error" };
+    }
   };
 
-  const logout = () => setCurrentUser(null);
+  const logout = () => {
+    setCurrentUser(null);
+    setToken(null);
+  };
 
   const isAdmin = currentUser?.role === "admin";
   const isLoggedIn = !!currentUser;
 
   return (
-    <AuthContext.Provider value={{ currentUser, users, login, register, logout, isAdmin, isLoggedIn }}>
+    <AuthContext.Provider
+      value={{
+        currentUser,
+        token,
+        login,
+        register,
+        logout,
+        isAdmin,
+        isLoggedIn,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
