@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
-const AuthContext = createContext(undefined);
+const AuthContext = createContext(null);
 
 const USERS_KEY = "qc_users";
 const CURRENT_USER_KEY = "qc_current_user";
