@@ -4,12 +4,16 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import ProfileDropdown from "./ProfileDropdown";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { totalItems } = useCart();
   const { currentUser, isLoggedIn, isAdmin, logout } = useAuth();
+  const navigate = useNavigate();
 
   const navItems = [
     { to: "/", label: "Home", icon: BarChart3 },
@@ -21,6 +25,15 @@ const Navbar = () => {
   if (isAdmin) navItems.push({ to: "/admin", label: "Admin", icon: LayoutDashboard });
 
   const isActive = (path) => location.pathname === path;
+
+  const handleLogout = async () => {
+    await logout();
+    toast({
+      title: "👋 Logged out",
+      description: "See you again soon!",
+    });
+    navigate("/");
+  };
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-xl">
@@ -58,12 +71,12 @@ const Navbar = () => {
             </Button>
           </Link>
           {isLoggedIn ? (
-            <>
-              <span className="text-sm text-muted-foreground">{currentUser.name}</span>
-              <Button variant="ghost" size="sm" className="gap-2" onClick={logout}>
-                <LogOut className="h-4 w-4" /> Logout
-              </Button>
-            </>
+            // <Button variant="outline" >
+
+            //   <span className="text-sm font-semibold">{currentUser.name}</span>
+            // </Button>
+
+            <ProfileDropdown user={currentUser} onLogout={handleLogout} />
           ) : (
             <>
               <Link to="/login">
