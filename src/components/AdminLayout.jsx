@@ -31,7 +31,7 @@ const AdminLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar - Desktop */}
-      <aside className="hidden md:flex w-64 flex-col border-r border-border bg-card">
+      <aside className="hidden md:flex fixed top-0 left-0 h-screen w-64 flex-col border-r border-border bg-card z-40 overflow-y-auto">
         <div className="p-6 border-b border-border">
           <Link to="/admin" className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-gradient">
@@ -75,7 +75,7 @@ const AdminLayout = ({ children }) => {
       </aside>
 
       {/* Mobile Header */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 md:ml-64">
         <header className="md:hidden sticky top-0 z-50 flex items-center justify-between border-b border-border bg-card/80 backdrop-blur-xl px-4 py-3">
           <Link to="/admin" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-gradient">

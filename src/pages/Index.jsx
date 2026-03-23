@@ -7,18 +7,22 @@ import carousel1 from "@/assets/carousel-1.jpg";
 import carousel2 from "@/assets/carousel-2.jpg";
 import carousel3 from "@/assets/carousel-3.jpg";
 
+
 const carouselSlides = [
   {
+    id: 1,
     image: carousel1,
     title: "Fresh Groceries, Best Prices",
     subtitle: "Compare prices across 4 platforms and save up to 30% on every order",
   },
   {
+    id: 2,
     image: carousel2,
     title: "Shop Smarter, Not Harder",
     subtitle: "Join thousands of families who save every week with QuickCompare",
   },
   {
+    id: 3,
     image: carousel3,
     title: "Track Deliveries in Real-Time",
     subtitle: "From store to doorstep — know exactly where your order is",
@@ -77,73 +81,102 @@ const Index = () => {
 
       {/* Hero Carousel */}
       <section className="relative overflow-hidden">
-        <div className="relative h-[500px] md:h-[600px]">
-          {carouselSlides.map((slide, index) => (
-            <div
-              key={index}
-              className={`absolute inset-0 transition-all duration-700 ease-in-out ${
-                index === currentSlide ? "opacity-100 scale-100" : "opacity-0 scale-105"
-              }`}
-            >
-              <div className="absolute inset-0">
-                <img
-                  src={slide.image}
-                  alt={slide.title}
-                  className="h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-background/30" />
-              </div>
-              <div className="relative container mx-auto flex h-full items-center px-4">
-                <div className="max-w-xl animate-fade-in">
-                  <span className="mb-4 inline-block rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
-                    🛒 Smart Grocery Shopping
-                  </span>
-                  <h1 className="font-display text-4xl font-bold leading-tight text-foreground md:text-5xl lg:text-6xl">
-                    {slide.title.split(" ").slice(0, -2).join(" ")}{" "}
-                    <span className="text-gradient">{slide.title.split(" ").slice(-2).join(" ")}</span>
-                  </h1>
-                  <p className="mt-4 text-lg text-muted-foreground">{slide.subtitle}</p>
-                  <div className="mt-8 flex flex-wrap gap-3">
-                    <Link to="/compare">
-                      <Button size="lg" className="gap-2 shadow-hero">
-                        Start Comparing <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Link to="/register">
-                      <Button variant="outline" size="lg">Create Account</Button>
-                    </Link>
+        <div className="relative h-[500px] md:h-[520px] overflow-hidden">
+
+          {/* SLIDER TRACK */}
+          <div
+            className="flex h-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+            style={{
+              transform: `translateX(-${currentSlide * 100}%)`,
+            }}
+          >
+            {carouselSlides.map((slide) => (
+              <div key={slide.id} className="min-w-full h-full relative">
+
+                {/* Background */}
+                <div className="absolute inset-0">
+                  <img
+                    src={slide.image}
+                    alt={slide.title}
+                    className="h-full w-full object-cover"
+                  />
+
+                  {/* Light overlay (no more fade issue) */}
+                  <div className="absolute inset-0 bg-black/40" />
+                </div>
+
+                {/* Content */}
+                <div className="relative container mx-auto flex h-full items-center px-4">
+                  <div className="max-w-xl bg-black/40 ml-20 p-6 rounded-2xl shadow-xl">
+
+                    <span className="mb-4 inline-block rounded-full bg-primary/20 px-4 py-1.5 text-sm font-medium text-white">
+                      🛒 Smart Grocery Shopping
+                    </span>
+
+                    <h1 className="font-display text-4xl font-bold leading-tight text-white md:text-5xl lg:text-6xl">
+                      {slide.title.split(" ").slice(0, -2).join(" ")}{" "}
+                      <span className="text-primary">
+                        {slide.title.split(" ").slice(-2).join(" ")}
+                      </span>
+                    </h1>
+
+                    <p className="mt-4 text-lg text-white/80">
+                      {slide.subtitle}
+                    </p>
+
+                    <div className="mt-8 flex flex-wrap gap-3">
+                      <Link to="/compare">
+                        <Button size="lg" className="gap-2 shadow-lg">
+                          Start Comparing <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </Link>
+
+                      <Link to="/register">
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          className="border-white hover:bg-white hover:text-black"
+                        >
+                          Create Account
+                        </Button>
+                      </Link>
+                    </div>
+
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
 
-          {/* Carousel Controls */}
+          {/* Controls */}
           <button
             onClick={prevSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-card/80 backdrop-blur-sm border border-border text-foreground hover:bg-card transition-colors"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30 transition"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
+
           <button
             onClick={nextSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-card/80 backdrop-blur-sm border border-border text-foreground hover:bg-card transition-colors"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30 transition"
           >
             <ChevronRight className="h-5 w-5" />
           </button>
 
           {/* Dots */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
             {carouselSlides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
-                className={`h-2.5 rounded-full transition-all duration-300 ${
-                  index === currentSlide ? "w-8 bg-primary" : "w-2.5 bg-muted-foreground/30"
-                }`}
+                className={`h-2.5 rounded-full transition-all duration-300 ${index === currentSlide
+                    ? "w-8 bg-white"
+                    : "w-2.5 bg-white/40"
+                  }`}
               />
             ))}
           </div>
+
         </div>
       </section>
 
@@ -235,7 +268,7 @@ const Index = () => {
           © 2026 QuickCompare. All rights reserved.
         </div>
       </footer>
-    </div>
+    </div >
   );
 };
 

@@ -9,8 +9,14 @@ const ProductCard = ({ item }) => {
   const { addToCart } = useCart();
   const { toast } = useToast();
   const inStockPrices = item.prices.filter(p => p.inStock);
-  const lowestPrice = Math.min(...inStockPrices.map(p => p.price));
-  const highestPrice = Math.max(...inStockPrices.map(p => p.price));
+  const lowestPrice =
+    inStockPrices.length > 0
+      ? Math.min(...inStockPrices.map(p => p.price))
+      : 0;
+  const highestPrice =
+    inStockPrices.length > 0
+      ? Math.max(...inStockPrices.map(p => p.price))
+      : 0;
   const savings = highestPrice - lowestPrice;
 
   const cheapestPlatform = inStockPrices.find(p => p.price === lowestPrice);
@@ -34,7 +40,7 @@ const ProductCard = ({ item }) => {
             <p className="text-sm text-muted-foreground">{item.unit}</p>
           </div>
         </div>
-        <Badge variant="secondary" className="text-xs">{item.category}</Badge>
+        <Badge variant="secondary" className="text-xs">{item.category?.name || "Unknown"}</Badge>
       </div>
 
       <div className="space-y-2">

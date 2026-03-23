@@ -48,7 +48,7 @@ const Register = () => {
         description: `Welcome, ${result.user.name}!`,
       });
 
-      navigate("/"); // redirect after success
+      navigate("/home"); // redirect after success
     } else {
       toast({
         title: "Registration Failed",

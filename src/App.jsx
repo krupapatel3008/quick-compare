@@ -8,7 +8,8 @@ import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { OrderProvider } from "@/context/OrderContext";
 
-import Index from "./pages/Index";
+import Landing from "./pages/Index"; // ✅ rename mentally (landing page)
+import Home from "./pages/Home";     // ✅ NEW PAGE
 import Compare from "./pages/Compare";
 import Cart from "./pages/Cart";
 import Login from "./pages/Login";
@@ -39,11 +40,13 @@ const App = () => (
             <BrowserRouter>
               <Routes>
 
+                {/* 🌐 Landing (Public) */}
+                <Route path="/" element={<Landing />} />
+                
                 {/* 🌐 Public routes */}
-                <Route path="/" element={<Index />} />
                 <Route path="/compare" element={<Compare />} />
                 <Route path="/cart" element={<Cart />} />
-                <Route path="/tracking" element={<Tracking />} />
+
 
                 {/* 🚫 Only for NOT logged-in users */}
                 <Route
@@ -64,6 +67,15 @@ const App = () => (
                 />
 
                 {/* 🔐 Protected routes */}
+                {/* 🔐 Home (ONLY logged-in users) */}
+                <Route
+                  path="/home"
+                  element={
+                    <ProtectedRoute>
+                      <Home />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/my-orders"
                   element={
@@ -72,6 +84,13 @@ const App = () => (
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/tracking"
+                  element={
+                    <ProtectedRoute>
+                      <Tracking />
+                    </ProtectedRoute>
+                  } />
 
                 {/* 👑 Admin only */}
                 <Route

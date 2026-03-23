@@ -26,7 +26,7 @@ const Login = () => {
       description: `Welcome back, ${result.user.name}!`,
     });
 
-    navigate(result.user.role === "admin" ? "/admin" : "/");
+    navigate(result.user.role === "admin" ? "/admin" : "/home");
   } else {
     toast({
       title: "Login Failed",
@@ -74,9 +74,9 @@ const Login = () => {
             </Button>
           </form>
 
-          <div className="mt-4 rounded-lg bg-secondary p-3 text-center text-xs text-muted-foreground">
+          {/* <div className="mt-4 rounded-lg bg-secondary p-3 text-center text-xs text-muted-foreground">
             Admin: <span className="font-mono text-foreground">admin@quickcompare.com</span> / <span className="font-mono text-foreground">admin123</span>
-          </div>
+          </div> */}
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
             Don't have an account?{" "}

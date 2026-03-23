@@ -107,11 +107,18 @@ const Tracking = () => {
                 <span className="font-medium text-foreground">{displayOrder.items.length} item{displayOrder.items.length !== 1 ? 's' : ''}</span>
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
-                {displayOrder.items.map((item, i) => (
-                  <span key={i} className="rounded-lg bg-background px-2 py-0.5 text-xs text-foreground">
-                    {item.item.image} {item.item.name} ×{item.quantity}
-                  </span>
-                ))}
+                {displayOrder.items?.map((item, i) => {
+                  const product = item.item;
+                  console.log("Product Item: ", product)  // DEBUG Console
+                  return (
+                    <span
+                      key={i}
+                      className="rounded-lg bg-background px-2 py-0.5 text-xs text-foreground"
+                    >
+                      {product?.image || "🛒"} {product?.name || "Unknown"} ×{item.quantity}
+                    </span>
+                  );
+                })}
               </div>
               <div className="mt-3 flex justify-between text-sm border-t border-border pt-3">
                 <span className="text-muted-foreground">Total</span>

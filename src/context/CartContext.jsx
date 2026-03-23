@@ -8,12 +8,12 @@ export const CartProvider = ({ children }) => {
   const addToCart = (item, platform, price) => {
     setCart((prev) => {
       const existing = prev.find(
-        (c) => c.item.id === item.id && c.platform === platform
+        (c) => c.item._id === item._id && c.platform === platform
       );
 
       if (existing) {
         return prev.map((c) =>
-          c.item.id === item.id && c.platform === platform
+          c.item._id === item._id && c.platform === platform
             ? { ...c, quantity: c.quantity + 1 }
             : c
         );
@@ -26,7 +26,7 @@ export const CartProvider = ({ children }) => {
   const removeFromCart = (itemId, platform) => {
     setCart((prev) =>
       prev.filter(
-        (c) => !(c.item.id === itemId && c.platform === platform)
+        (c) => !(c.item._id === itemId && c.platform === platform)
       )
     );
   };
@@ -39,7 +39,7 @@ export const CartProvider = ({ children }) => {
 
     setCart((prev) =>
       prev.map((c) =>
-        c.item.id === itemId && c.platform === platform
+        c.item._id === itemId && c.platform === platform
           ? { ...c, quantity }
           : c
       )
@@ -57,9 +57,9 @@ export const CartProvider = ({ children }) => {
   // ✅ IMPORTANT: Format cart for backend
   const getFormattedCart = () => {
     return cart.map((c) => ({
-      productId: c.item.id,
+      productId: c.item._id,
       name: c.item.name,
-      price: c.price,
+      price: c.prices,
       quantity: c.quantity,
       platform: c.platform,
       image: c.item.image,

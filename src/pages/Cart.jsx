@@ -91,7 +91,7 @@ const Cart = () => {
           <div className="space-y-3 lg:col-span-2">
             {cart.map((c) => (
               <div
-                key={`${c.item.id}-${c.platform}`}
+                key={`${c.item._id}-${c.platform}`}
                 className="flex items-center gap-4 border p-4 rounded-xl"
               >
                 <span>{c.item.image}</span>
@@ -108,7 +108,7 @@ const Cart = () => {
                     size="icon"
                     onClick={() =>
                       updateQuantity(
-                        c.item.id,
+                        c.item._id,
                         c.platform,
                         c.quantity - 1
                       )
@@ -123,7 +123,7 @@ const Cart = () => {
                     size="icon"
                     onClick={() =>
                       updateQuantity(
-                        c.item.id,
+                        c.item._id,
                         c.platform,
                         c.quantity + 1
                       )
@@ -138,7 +138,7 @@ const Cart = () => {
                 <Button
                   size="icon"
                   onClick={() =>
-                    removeFromCart(c.item.id, c.platform)
+                    removeFromCart(c.item._id, c.platform)
                   }
                 >
                   <Trash2 />

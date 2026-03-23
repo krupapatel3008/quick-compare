@@ -17,22 +17,22 @@ const Navbar = () => {
 
   // Client nav items (non-admin logged-in users)
   const clientNavItems = [
-    { to: "/", label: "Home", icon: BarChart3 },
+    { to: "/home", label: "Home", icon: BarChart3 },
     { to: "/compare", label: "Compare", icon: ShoppingCart },
-    { to: "/tracking", label: "Track Order", icon: Truck },
+    // { to: "/tracking", label: "Track Order", icon: Truck },
     { to: "/my-orders", label: "My Orders", icon: Package },
   ];
 
   // Public nav items (not logged in)
   const publicNavItems = [
     { to: "/", label: "Home", icon: BarChart3 },
-    { to: "/compare", label: "Compare", icon: ShoppingCart },
-    { to: "/tracking", label: "Track Order", icon: Truck },
+    { to: "/compare", label: "Compare", icon: ShoppingCart }
   ];
 
   // Admin should not see this navbar at all — they have their own sidebar
   // But if somehow rendered, show nothing
-  if (isAdmin) return null;
+  // console.log({ isLoggedIn, isAdmin, currentUser });
+  // if (isLoggedIn && isAdmin) return null;
 
   const navItems = isLoggedIn ? clientNavItems : publicNavItems;
   const isActive = (path) => location.pathname === path;
