@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { ShoppingCart, BarChart3, Truck, User, LogIn, Menu, X, LayoutDashboard, LogOut, Package } from "lucide-react";
+import { ShoppingCart, BarChart3, Truck, User, LogIn, Menu, X, LogOut, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
@@ -15,15 +15,26 @@ const Navbar = () => {
   const { currentUser, isLoggedIn, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
 
-  const navItems = [
+  // Client nav items (non-admin logged-in users)
+  const clientNavItems = [
+    { to: "/", label: "Home", icon: BarChart3 },
+    { to: "/compare", label: "Compare", icon: ShoppingCart },
+    { to: "/tracking", label: "Track Order", icon: Truck },
+    { to: "/my-orders", label: "My Orders", icon: Package },
+  ];
+
+  // Public nav items (not logged in)
+  const publicNavItems = [
     { to: "/", label: "Home", icon: BarChart3 },
     { to: "/compare", label: "Compare", icon: ShoppingCart },
     { to: "/tracking", label: "Track Order", icon: Truck },
   ];
 
-  if (isLoggedIn) navItems.push({ to: "/my-orders", label: "My Orders", icon: Package });
-  if (isAdmin) navItems.push({ to: "/admin", label: "Admin", icon: LayoutDashboard });
+  // Admin should not see this navbar at all — they have their own sidebar
+  // But if somehow rendered, show nothing
+  if (isAdmin) return null;
 
+  const navItems = isLoggedIn ? clientNavItems : publicNavItems;
   const isActive = (path) => location.pathname === path;
 
   const handleLogout = async () => {
@@ -71,11 +82,6 @@ const Navbar = () => {
             </Button>
           </Link>
           {isLoggedIn ? (
-            // <Button variant="outline" >
-
-            //   <span className="text-sm font-semibold">{currentUser.name}</span>
-            // </Button>
-
             <ProfileDropdown user={currentUser} onLogout={handleLogout} />
           ) : (
             <>
@@ -122,7 +128,7 @@ const Navbar = () => {
             {isLoggedIn ? (
               <>
                 <p className="px-3 text-sm text-muted-foreground">Signed in as {currentUser.name}</p>
-                <Button variant="ghost" className="w-full justify-start gap-2" onClick={() => { logout(); setMobileOpen(false); }}>
+                <Button variant="ghost" className="w-full justify-start gap-2" onClick={() => { handleLogout(); setMobileOpen(false); }}>
                   <LogOut className="h-4 w-4" /> Logout
                 </Button>
               </>

@@ -1,398 +1,120 @@
-import { getUsers, updateOrderStatusApi } from "@/api/adminApi";
-import { getCategories, addCategory } from "@/api/categoryApi";
-import { getGroceries, addGrocery } from "@/api/groceryApi";
+import { getUsers } from "@/api/adminApi";
+import { getGroceries } from "@/api/groceryApi";
 import { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
-import Navbar from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
 import { useOrders } from "@/context/OrderContext";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import AdminLayout from "@/components/AdminLayout";
 import {
   Package, Users, ShoppingBag, LayoutDashboard,
-  CheckCircle2, Clock, Truck, MapPin, Plus, Trash2, Edit
+  TrendingUp, ArrowRight
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { toast } from "@/hooks/use-toast";
-
-const statusColors = {
-  placed: "bg-accent text-accent-foreground",
-  packed: "bg-primary/80 text-primary-foreground",
-  in_transit: "bg-primary text-primary-foreground",
-  delivered: "bg-primary text-primary-foreground",
-};
-
-const statusLabels = {
-  placed: "Placed",
-  packed: "Packed",
-  in_transit: "In Transit",
-  delivered: "Delivered",
-};
-
-const stepIcons = [Package, CheckCircle2, Truck, MapPin];
+import { Link } from "react-router-dom";
 
 const AdminDashboard = () => {
-  const [categories, setCategories] = useState([]);
-  const [newCategory, setNewCategory] = useState("");
-  const [users, setUsers] = useState([]);
-  const { isAdmin, currentUser } = useAuth();
+  const { currentUser } = useAuth();
   const { orders, fetchAllOrders } = useOrders();
-  const { toast } = useToast();
-  const [tab, setTab] = useState("orders");
+  const [users, setUsers] = useState([]);
   const [products, setProducts] = useState([]);
-  const [newProduct, setNewProduct] = useState({ name: "", category: "", image: "", unit: "" });
-  const steps = ["placed", "packed", "in_transit", "delivered"];
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [search, setSearch] = useState("");
-
-  if (!currentUser) return null;
-  if (!isAdmin) return <Navigate to="/login" replace />;
 
   useEffect(() => {
-    // FETCH ORDERS
-    fetchAllOrders({
-      status: statusFilter,
-      search,
-    });
-  }, []);
-
-
-  useEffect(() => {
-    // FETCH USERS
-    const fetchUsers = async () => {
+    fetchAllOrders({});
+    const fetchData = async () => {
       try {
-        const data = await getUsers();
-        setUsers(data);
+        const [usersData, productsData] = await Promise.all([getUsers(), getGroceries()]);
+        setUsers(usersData);
+        setProducts(productsData);
       } catch (err) {
         console.error(err);
       }
     };
-
-    // FETCH PRODUCTS
-    const fetchProducts = async () => {
-      try {
-        const data = await getGroceries();
-        setProducts(data);
-      } catch (err) {
-        console.log(err);
-      }
-
-    };
-
-    // FETCH CATEGORY
-    const fetchCategories = async () => {
-      try {
-        const data = await getCategories();
-        setCategories(data);
-      } catch (err) {
-        console.log(err);
-      }
-    };
-
-    fetchProducts();
-    fetchCategories();
-    fetchUsers();
+    fetchData();
   }, []);
 
-  const handleOrderSearch = async () => {
-    await fetchAllOrders({
-      status: statusFilter,
-      search,
-    });
-  }
+  const deliveredOrders = orders.filter(o => o.status === "delivered").length;
+  const pendingOrders = orders.filter(o => o.status !== "delivered").length;
+  const totalRevenue = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
 
-  // ORDER HANDLER
-  const handleUpdateOrder = async (orderId, status) => {
-    console.log("OrderID: ", orderId)
-    console.log("Status: ", status)
-    try {
-      await updateOrderStatusApi(orderId, status);
-
-      toast({
-        title: "Order Updated",
-        description: `Status changed to ${status}`,
-      });
-
-      fetchOrders(); // refresh UI
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: err.msg,
-        variant: "destructive",
-      });
-    }
-  };
-
-  // CATEGORY HANDLER
-  const handleAddCategory = async () => {
-    if (!newCategory) return;
-
-    const cat = await addCategory(newCategory);
-    setCategories((prev) => [...prev, cat]);
-    setNewCategory("");
-  };
-
-
-  // ADD PRODUCT (backend)
-  const addProduct = async () => {
-    if (!newProduct.name || !newProduct.category || !newProduct.unit) {
-      toast({ title: "Fill all fields", variant: "destructive" });
-      return;
-    }
-
-    try {
-      const product = await addGrocery(newProduct);
-      setProducts((prev) => [...prev, product]);
-
-      setNewProduct({
-        name: "",
-        category: "",
-        image: "🛒",
-        unit: ""
-      });
-
-      toast({ title: "Product added!" });
-    } catch (err) {
-      toast({ title: "Error adding product", variant: "destructive" });
-    }
-  };
-
-  const removeProduct = (id) => {
-    setProducts(products.filter((p) => p._id !== id));
-    toast({ title: "Product removed" });
-  };
-
-  const tabs = [
-    { id: "orders", label: "Orders", icon: ShoppingBag, count: orders.length },
-    { id: "products", label: "Products", icon: Package, count: products.length },
-    { id: "users", label: "Users", icon: Users, count: users.length },
+  const stats = [
+    { label: "Total Orders", value: orders.length, icon: ShoppingBag, color: "bg-brand-gradient", link: "/admin/orders" },
+    { label: "Products", value: products.length, icon: Package, color: "bg-accent", link: "/admin/products" },
+    { label: "Users", value: users.length, icon: Users, color: "bg-primary/80", link: "/admin/users" },
+    { label: "Revenue", value: `₹${totalRevenue}`, icon: TrendingUp, color: "bg-brand-gradient-warm", link: "/admin/orders" },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <div className="container mx-auto px-4 py-8">
+    <AdminLayout>
+      <div className="p-6 md:p-8">
         <div className="mb-8 animate-fade-in">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-gradient">
               <LayoutDashboard className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display text-3xl font-bold text-foreground">Admin Dashboard</h1>
-              <p className="text-muted-foreground">Manage orders, products & users</p>
+              <h1 className="font-display text-3xl font-bold text-foreground">Dashboard</h1>
+              <p className="text-muted-foreground">Welcome back, {currentUser?.name}</p>
             </div>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3 animate-fade-in">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex items-center gap-4 rounded-xl border p-5 text-left transition-all ${tab === t.id
-                ? "border-primary bg-primary/5 shadow-card"
-                : "border-border bg-card hover:shadow-card"
-                }`}
-            >
-              <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${tab === t.id ? "bg-brand-gradient" : "bg-secondary"}`}>
-                <t.icon className={`h-6 w-6 ${tab === t.id ? "text-primary-foreground" : "text-muted-foreground"}`} />
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+          {stats.map((s) => (
+            <Link key={s.label} to={s.link} className="group">
+              <div className="flex items-center gap-4 rounded-xl border border-border bg-card p-5 shadow-card transition-all hover:shadow-card-hover hover:-translate-y-0.5">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${s.color}`}>
+                  <s.icon className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-display text-2xl font-bold text-foreground">{s.value}</p>
+                  <p className="text-sm text-muted-foreground">{s.label}</p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <div>
-                <p className="font-display text-2xl font-bold text-foreground">{t.count}</p>
-                <p className="text-sm text-muted-foreground">{t.label}</p>
-              </div>
-            </button>
+            </Link>
           ))}
         </div>
 
-        {/* Orders Tab */}
-        {tab === "orders" && (
-          <div className="space-y-4 animate-fade-in">
-            <h2 className="font-display text-xl font-bold text-foreground">All Orders</h2>
-            <div className="flex gap-4 items-center">
-              {/* Order Search */}
-              <div className="flex-col">
-                <label htmlFor="ord-search">Search Order</label>
-                <input
-                  type="text"
-                  name="ord-search"
-                  id="ord-search"
-                  placeholder="Search by Order ID or User"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="border px-3 py-2 rounded w-full"
-                />
+        {/* Quick Overview */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+            <h3 className="font-display text-lg font-semibold text-foreground mb-4">Order Summary</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Pending Orders</span>
+                <span className="font-display font-bold text-foreground">{pendingOrders}</span>
               </div>
-
-              {/* Order Filter Dropdown */}
-              <div className="flex-col">
-                <label htmlFor="ord-filter">Filter Order</label>
-                <div>
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="border px-3 py-2 rounded w-48"
-                  >
-                    <option value="all">All</option>
-                    <option value="placed">Placed</option>
-                    <option value="packed">Packed</option>
-                    <option value="in_transit">In Transit</option>
-                    <option value="delivered">Delivered</option>
-                  </select>
-                </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Delivered</span>
+                <span className="font-display font-bold text-primary">{deliveredOrders}</span>
               </div>
-              <Button className="" variant={"default"} onClick={handleOrderSearch}>Search</Button>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Total Orders</span>
+                <span className="font-display font-bold text-foreground">{orders.length}</span>
+              </div>
             </div>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+            <h3 className="font-display text-lg font-semibold text-foreground mb-4">Recent Orders</h3>
             {orders.length === 0 ? (
-              <div className="rounded-xl border border-border bg-card p-12 text-center">
-                <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground/40" />
-                <p className="mt-3 text-muted-foreground">No orders yet</p>
-              </div>
+              <p className="text-muted-foreground text-sm">No orders yet</p>
             ) : (
-              orders.map((order) => (
-                <div key={order._id} className="rounded-xl border border-border bg-card p-6 shadow-card">
-                  <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div className="space-y-3">
+                {orders.slice(0, 5).map((order) => (
+                  <div key={order._id} className="flex justify-between items-center text-sm">
                     <div>
-                      <p className="font-display font-semibold text-foreground">{order.orderId}</p>
-                      <p className="text-sm text-muted-foreground">by {order.userName} · {new Date(order.createdAt).toLocaleDateString()}</p>
+                      <p className="font-medium text-foreground">{order.orderId}</p>
+                      <p className="text-xs text-muted-foreground">{order.userName}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className={`${statusColors[order.status]} border-0`}>{statusLabels[order.status]}</Badge>
-                      <span className="font-display font-bold text-foreground">₹{order.totalPrice}</span>
-                    </div>
+                    <span className="font-display font-bold text-foreground">₹{order.totalPrice}</span>
                   </div>
-
-                  <div className="mb-4 flex flex-wrap gap-2">
-                    {order.items.map((item, idx) => (
-                      <span key={idx}>
-                        {item.name} ×{item.quantity}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {order.trackingSteps.map((step, i) => {
-                      const Icon = stepIcons[i];
-                      return (
-                        <Button
-                          key={step.label}
-                          size="sm"
-                          variant={step.done ? "default" : "outline"}
-                          className="gap-1.5"
-                          disabled={!order.trackingSteps[i - 1]?.done && i !== 0}
-                          onClick={() => handleUpdateOrder(order.orderId, steps[i])}
-                        >
-                          <Icon className="h-3.5 w-3.5" />
-                          {step.label}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
-        )}
-
-
-
-        {/* Products Tab */}
-        {tab === "products" && (
-          <div className="space-y-6 animate-fade-in">
-            <h2 className="font-display text-xl font-bold text-foreground">Manage Products</h2>
-
-            <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-              <h3 className="mb-2 font-display font-semibold text-foreground">Add New Category</h3>
-              {/* Category Add */}
-              <div className="flex gap-2 mb-10 w-full">
-                <Input
-                  placeholder="New category"
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  className="w-[1/2]"
-                />
-                <Button onClick={handleAddCategory}>Add</Button>
-              </div>
-              <h3 className="mb-2 font-display font-semibold text-foreground">Add New Product</h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="space-y-1">
-                  <Label>Name</Label>
-                  <Input placeholder="Product name" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} />
-                </div>
-                <div className="space-y-1">
-                  <Label>Category</Label>
-                  {/* <Input placeholder="e.g. Dairy" value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })} /> */}
-                  <select
-                    className="w-full border rounded px-3 py-2"
-                    value={newProduct.category}
-                    onChange={(e) =>
-                      setNewProduct({ ...newProduct, category: e.target.value })
-                    }
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((cat) => (
-                      <option key={cat._id} value={cat._id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <Label>Unit</Label>
-                  <Input placeholder="e.g. 1 kg" value={newProduct.unit} onChange={(e) => setNewProduct({ ...newProduct, unit: e.target.value })} />
-                </div>
-                <div className="space-y-1">
-                  <Label>Emoji</Label>
-                  <Input placeholder="🛒" value={newProduct.image} onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })} />
-                </div>
-              </div>
-
-              <Button className="mt-4 gap-2" onClick={addProduct}><Plus className="h-4 w-4" /> Add Product</Button>
-            </div>
-
-            <div className="space-y-3">
-              {products.map((p) => (
-                <div key={p.id} className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-card">
-                  <span className="text-2xl">{p.image}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-display font-semibold text-foreground truncate">{p.name}</p>
-                    <p className="text-sm text-muted-foreground">{p.category} · {p.unit}</p>
-                  </div>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => removeProduct(p.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Users Tab */}
-        {tab === "users" && (
-          <div className="space-y-4 animate-fade-in">
-            <h2 className="font-display text-xl font-bold text-foreground">All Users</h2>
-            {users.map((user) => (
-              <div key={user._id} className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-card">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary font-display font-bold text-secondary-foreground">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-display font-semibold text-foreground">{user.name}</p>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                </div>
-                <Badge className={`border-0 ${user.role === "admin" ? "bg-brand-gradient text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}>
-                  {user.role}
-                </Badge>
-                <p className="text-xs text-muted-foreground hidden sm:block">{new Date(user.createdAt).toLocaleDateString()}</p>
-              </div>
-            ))}
-          </div>
-        )}
+        </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 
