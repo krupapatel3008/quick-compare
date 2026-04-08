@@ -25,8 +25,8 @@ different platforms and help users find the best deals instantly.
 
 ### 1️⃣ Clone the Repository
 
-    git clone https://github.com/your-username/quick-grocery-compare.git
-    cd quick-grocery-compare
+    git clone https://github.com/your-username/quick-compare.git
+    cd quick-compare
 
 ### 2️⃣ Install Dependencies
 
@@ -70,18 +70,11 @@ Preview:
     │   ├── components/
     │   ├── pages/
     │   ├── assets/
-    │   └── main.jsx / main.js
+    |   |-- App.jsx
+    │   └── main.jsx
     │── index.html
     │── package.json
     │── vite.config.js
-
-------------------------------------------------------------------------
-
-## ⚙️ Environment Variables
-
-Create a `.env` file:
-
-    VITE_API_URL=your_api_url_here
 
 ------------------------------------------------------------------------
 
@@ -102,4 +95,4 @@ MIT License
 
 ## 👨‍💻 Author
 
-Kanishk Chaudhari
+Krupa Patel
