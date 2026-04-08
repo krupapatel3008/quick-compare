@@ -1,73 +1,105 @@
-# Welcome to your Lovable project
+# 🛒 Quick Grocery Compare
 
-## Project info
+A fast and simple web application to compare grocery prices across
+different platforms and help users find the best deals instantly.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🚀 Features
 
-## How can I edit this code?
+-   🔍 Search and compare grocery items
+-   💰 View price differences across stores
+-   ⚡ Fast performance using Vite
+-   📱 Responsive UI for mobile and desktop
+-   🧠 Smart comparison logic (customizable)
 
-There are several ways of editing your application.
+------------------------------------------------------------------------
 
-**Use Lovable**
+## 🛠️ Tech Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+-   **Frontend:** HTML, CSS, JavaScript / React
+-   **Build Tool:** Vite
+-   **Package Manager:** npm / yarn
 
-Changes made via Lovable will be committed automatically to this repo.
+------------------------------------------------------------------------
 
-**Use your preferred IDE**
+## 📦 Installation & Setup
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 1️⃣ Clone the Repository
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+    git clone https://github.com/your-username/quick-grocery-compare.git
+    cd quick-grocery-compare
 
-Follow these steps:
+### 2️⃣ Install Dependencies
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+    npm install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+or
 
-# Step 3: Install the necessary dependencies.
-npm i
+    yarn
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+### 3️⃣ Start Development Server
 
-**Edit a file directly in GitHub**
+    npm run dev
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+or
 
-**Use GitHub Codespaces**
+    yarn dev
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### 4️⃣ Open in Browser
 
-## What technologies are used for this project?
+Visit:
 
-This project is built with:
+    http://localhost:5173/
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+------------------------------------------------------------------------
 
-## How can I deploy this project?
+## 🏗️ Build for Production
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+    npm run build
 
-## Can I connect a custom domain to my Lovable project?
+Preview:
 
-Yes, you can!
+    npm run preview
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+------------------------------------------------------------------------
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 📁 Project Structure
+
+    quick-grocery-compare/
+    │── public/
+    │── src/
+    │   ├── components/
+    │   ├── pages/
+    │   ├── assets/
+    │   └── main.jsx / main.js
+    │── index.html
+    │── package.json
+    │── vite.config.js
+
+------------------------------------------------------------------------
+
+## ⚙️ Environment Variables
+
+Create a `.env` file:
+
+    VITE_API_URL=your_api_url_here
+
+------------------------------------------------------------------------
+
+## 🤝 Contributing
+
+1.  Fork the repo\
+2.  Create a branch\
+3.  Commit changes\
+4.  Push and open PR
+
+------------------------------------------------------------------------
+
+## 📄 License
+
+MIT License
+
+------------------------------------------------------------------------
+
+## 👨‍💻 Author
+
+Kanishk Chaudhari
