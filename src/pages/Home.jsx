@@ -17,8 +17,8 @@ const Home = () => {
 
     useEffect(() => {
         Promise.all([
-            fetch("http://localhost:5000/api/groceries").then((res) => res.json()),
-            fetch("http://localhost:5000/api/categories").then((res) => res.json()),
+            fetch("https://quick-compare-backend.vercel.app/api/groceries").then((res) => res.json()),
+            fetch("https://quick-compare-backend.vercel.app/api/categories").then((res) => res.json()),
         ])
             .then(([productsData, categoriesData]) => {
                 setProducts(productsData);

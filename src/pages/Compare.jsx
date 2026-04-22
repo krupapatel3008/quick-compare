@@ -13,7 +13,7 @@ const Compare = () => {
 
   useEffect(() => {
     // Fetch products
-    fetch("http://localhost:5000/api/groceries")
+    fetch("https://quick-compare-backend.vercel.app/api/groceries")
       .then((res) => res.json())
       .then((data) => {
         setProducts(data);
@@ -22,7 +22,7 @@ const Compare = () => {
       .catch((err) => console.error("Groceries fetch error:", err));
 
     // Fetch categories
-    fetch("http://localhost:5000/api/categories")
+    fetch("https://quick-compare-backend.vercel.app/api/categories")
       .then((res) => res.json())
       .then((data) => {
         // ❌ remove "All" from backend to avoid duplicate
