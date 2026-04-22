@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "http://localhost:5000/api",
+  // baseURL: "http://localhost:5000/api",
+  baseURL: "https://quick-compare-backend.vercel.app/api",
 });
 
 instance.interceptors.request.use((config) => {
